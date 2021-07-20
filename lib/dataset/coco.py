@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------
+# # ------------------------------------------------------------------------------
 # Copyright (c) Microsoft
 # Licensed under the MIT License.
 # Written by Bin Xiao (Bin.Xiao@microsoft.com)
@@ -51,9 +51,9 @@ class COCODataset(JointsDataset):
         [16,14],[14,12],[17,15],[15,13],[12,13],[6,12],[7,13], [6,7],[6,8],
         [7,9],[8,10],[9,11],[2,3],[1,2],[1,3],[2,4],[3,5],[4,6],[5,7]]
     '''
-    def __init__(self, cfg, root, image_set, is_train, transform=None):
-        super().__init__(cfg, root, image_set, is_train, transform)
-        ##nms阈值，默认为1
+    def __init__(self, cfg, root, image_set, is_train, transform=None, coord_representation='heatmap', simdr_split_ratio=1):
+        super().__init__(cfg, root, image_set, is_train, transform, coord_representation, simdr_split_ratio)
+		##nms阈值，默认为1
         self.nms_thre = cfg.TEST.NMS_THRE
         ##默认设置为0
         self.image_thre = cfg.TEST.IMAGE_THRE
@@ -105,6 +105,7 @@ class COCODataset(JointsDataset):
         self.image_set_index = self._load_image_set_index()
         ##计算总共多少图片
         self.num_images = len(self.image_set_index)
+
         logger.info('=> num_images: {}'.format(self.num_images))
 
         ##需要检测的关键点个数
@@ -154,11 +155,13 @@ class COCODataset(JointsDataset):
         ##如果是进行训练或者self.use_gt_bbox设置为True
         if self.is_train or self.use_gt_bbox:
             # use ground truth bbox
+            print("++++++++++++++++++++++++++++++++++++++++++++")
             gt_db = self._load_coco_keypoint_annotations()
         ##使用目标检测模型
         else:
             # use bbox from detection
             ##使用来自目标检测结果的box
+            print("=======================================")
             gt_db = self._load_coco_person_detection_results()
         return gt_db
 
@@ -365,6 +368,7 @@ class COCODataset(JointsDataset):
         oks_nmsed_kpts = []
         for img in kpts.keys():
             img_kpts = kpts[img]
+
             for n_p in img_kpts:
                 box_score = n_p['score']
                 kpt_score = 0
@@ -385,6 +389,7 @@ class COCODataset(JointsDataset):
                     oks_thre
                 )
             else:
+                # default
                 keep = oks_nms(
                     [img_kpts[i] for i in range(len(img_kpts))],
                     oks_thre
@@ -483,6 +488,3 @@ class COCODataset(JointsDataset):
             info_str.append((name, coco_eval.stats[ind]))
 
         return info_str
-
-if __name__ == '__main__':
-    pass
