@@ -129,6 +129,7 @@ class COCODataset(JointsDataset):
             dtype=np.float32
         ).reshape((self.num_joints, 1))
 
+		##加载所有数据关键点信息
         self.db = self._get_db()
 
         if is_train and cfg.DATASET.SELECT_DATA:
